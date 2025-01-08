@@ -12,7 +12,7 @@ declare module 'vue-router' {
       contact: {
         name: string
         email: string
-        phone: strins
+        phone: string
       }
     }
   }
