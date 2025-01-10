@@ -1,18 +1,16 @@
 <template>
   <div class="contact-form">
     <h3>Contact Information</h3>
-    <input v-model="localContact.name" placeholder="Name" />
-    <input v-model="localContact.email" placeholder="Email" />
-    <input v-model="localContact.phone" placeholder="Phone" />
-    <button @click="updateContact">Save</button>
+    <input v-model="localContact.name" placeholder="Name" @input="updateContact" />
+    <input v-model="localContact.email" placeholder="Email" @input="updateContact" />
+    <input v-model="localContact.phone" placeholder="Phone" @input="updateContact" />
   </div>
 </template>
 
 <script lang="ts">
-import type { PropType } from 'vue'
 import { defineComponent } from 'vue'
+import type { PropType } from 'vue'
 
-// Define types for the contact prop
 interface Contact {
   name: string
   email: string
@@ -29,12 +27,13 @@ export default defineComponent({
   },
   data() {
     return {
+      // Create a local copy of the contact object
       localContact: { ...this.contact },
     }
   },
   methods: {
     updateContact() {
-      // Emit the updated contact back to the parent
+      // Emit the updated contact object back to the parent component
       this.$emit('update', this.localContact)
     },
   },
@@ -56,17 +55,7 @@ input {
   border-radius: 4px;
 }
 
-button {
-  padding: 10px;
-  font-size: 1rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
+h3 {
+  margin-bottom: 10px;
 }
 </style>

@@ -9,4 +9,4 @@ const getAllServices = (req, res) => {
   })
 }
 
-export default getAllServices // Ensure it's exported as default
+export default getAllServices
