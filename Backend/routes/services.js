@@ -1,7 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const ServicesController = require("../controllers/servicesController");
+import express from 'express'
+import getAllServices from '../controllers/servicesController.js' // Correct import for a default export
 
-router.get("/", ServicesController.getAllServices); // Adjust accordingly
+const router = express.Router()
 
-module.exports = router;
+router.get('/', getAllServices) // Use the imported function directly
+
+export default router

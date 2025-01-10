@@ -1,4 +1,4 @@
-const { db } = require("../config/db");
+import { db } from '../config/db.js'
 
 const bookingController = {
   // Method to create a booking
@@ -10,7 +10,7 @@ const bookingController = {
       customer_name,
       customer_phone,
       customer_email,
-    } = req.body;
+    } = req.body
 
     // Validate request body
     if (
@@ -24,8 +24,8 @@ const bookingController = {
       !customer_email
     ) {
       return res.status(400).json({
-        error: "All fields are required and services should be an array.",
-      });
+        error: 'All fields are required and services should be an array.',
+      })
     }
 
     // Start a transaction to ensure the booking and services are added together
@@ -34,70 +34,60 @@ const bookingController = {
       const sqlBooking = `
         INSERT INTO bookings (booking_date, booking_time, customer_name, customer_phone, customer_email)
         VALUES (?, ?, ?, ?, ?)
-      `;
+      `
       const paramsBooking = [
         booking_date,
         booking_time,
         customer_name,
         customer_phone,
         customer_email,
-      ];
+      ]
 
       db.run(sqlBooking, paramsBooking, function (err) {
         if (err) {
-          console.error("Error inserting booking:", err.message); // Log the error
-          return res.status(500).json({ error: "Failed to create booking." });
+          console.error('Error inserting booking:', err.message) // Log the error
+          return res.status(500).json({ error: 'Failed to create booking.' })
         }
 
-        const bookingId = this.lastID;
+        const bookingId = this.lastID
 
         // Insert services for this booking
         const sqlServices = `
           INSERT INTO booking_services (booking_id, service_id)
           VALUES (?, ?)
-        `;
-        const serviceParams = services.map((serviceId) => [
-          bookingId,
-          serviceId,
-        ]);
+        `
+        const serviceParams = services.map((serviceId) => [bookingId, serviceId])
 
         // Prepare the statement to insert multiple services
-        const stmt = db.prepare(sqlServices);
+        const stmt = db.prepare(sqlServices)
 
-        let serviceError = false;
+        let serviceError = false
 
         serviceParams.forEach((param) => {
           stmt.run(param, (err) => {
             if (err) {
-              serviceError = true;
-              console.error(
-                "Error inserting service for booking:",
-                err.message
-              ); // Log the error
+              serviceError = true
+              console.error('Error inserting service for booking:', err.message) // Log the error
             }
-          });
-        });
+          })
+        })
 
         stmt.finalize(() => {
           if (serviceError) {
-            return res
-              .status(500)
-              .json({ error: "Failed to associate services with booking." });
+            return res.status(500).json({ error: 'Failed to associate services with booking.' })
           }
 
           // Return success response after all services have been inserted
-          res
-            .status(201)
-            .json({ message: "Booking created successfully.", bookingId });
-        });
-      });
-    });
+          res.status(201).json({ message: 'Booking created successfully.', bookingId })
+        })
+      })
+    })
   },
 
   // Method to get all bookings with their associated services
   getAllBookings: (req, res) => {
     const sql = `
-      SELECT 
+      SELECT
         bookings.id AS booking_id,
         bookings.booking_date,
         bookings.booking_time,
@@ -110,40 +100,36 @@ const bookingController = {
       LEFT JOIN booking_services ON bookings.id = booking_services.booking_id
       LEFT JOIN services ON booking_services.service_id = services.id
       GROUP BY bookings.id
-    `;
+    `
 
     db.all(sql, [], (err, rows) => {
       if (err) {
-        console.error("Error fetching bookings:", err.message);
-        return res.status(500).json({ error: "Failed to fetch bookings." });
+        console.error('Error fetching bookings:', err.message)
+        return res.status(500).json({ error: 'Failed to fetch bookings.' })
       }
 
       if (!rows || rows.length === 0) {
-        console.log("No bookings found.");
-        return res.status(404).json({ error: "No bookings found." });
+        console.log('No bookings found.')
+        return res.status(404).json({ error: 'No bookings found.' })
       }
 
       // Format the services names and prices into an array of objects
       const bookings = rows.map((row) => {
-        console.log("Row fetched:", row); // Debugging log for each row
+        console.log('Row fetched:', row) // Debugging log for each row
 
-        const servicesNames = row.services_names
-          ? row.services_names.split(",")
-          : [];
-        const servicesPrices = row.services_prices
-          ? row.services_prices.split(",")
-          : [];
+        const servicesNames = row.services_names ? row.services_names.split(',') : []
+        const servicesPrices = row.services_prices ? row.services_prices.split(',') : []
 
         // Check if servicesNames and servicesPrices have mismatched lengths
         if (servicesNames.length !== servicesPrices.length) {
-          console.error("Mismatch between services names and prices:", row);
+          console.error('Mismatch between services names and prices:', row)
         }
 
         // Combine names and prices into an array of objects
         const services = servicesNames.map((name, index) => ({
           name: name,
-          price: servicesPrices[index] || "N/A", // Default to 'N/A' if there's no price
-        }));
+          price: servicesPrices[index] || 'N/A', // Default to 'N/A' if there's no price
+        }))
 
         return {
           booking_id: row.booking_id,
@@ -153,14 +139,14 @@ const bookingController = {
           customer_phone: row.customer_phone,
           customer_email: row.customer_email,
           services: services, // Array of objects with service name and price
-        };
-      });
+        }
+      })
 
-      console.log("Bookings formatted:", bookings); // Debugging log for formatted bookings
+      console.log('Bookings formatted:', bookings) // Debugging log for formatted bookings
 
-      res.status(200).json({ bookings });
-    });
+      res.status(200).json({ bookings })
+    })
   },
-};
+}
 
-module.exports = bookingController;
+export default bookingController

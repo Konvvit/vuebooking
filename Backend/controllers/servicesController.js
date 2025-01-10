@@ -1,10 +1,12 @@
-const { db } = require("../config/db");
+import { db } from '../config/db.js'
 
-exports.getAllServices = (req, res) => {
-  db.all("SELECT * FROM services", [], (err, rows) => {
+const getAllServices = (req, res) => {
+  db.all('SELECT * FROM services', [], (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message })
     }
-    res.json(rows);
-  });
-};
+    res.json(rows)
+  })
+}
+
+export default getAllServices // Ensure it's exported as default

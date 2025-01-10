@@ -1,14 +1,12 @@
-// In routes/index.js
-const express = require("express");
-const router = express.Router();
+import express from 'express'
+import loginRoute from './login.js' // Ensure the correct path and include .js extension
+import bookingsRoute from './bookings.js'
+import servicesRoute from './services.js'
 
-// Route imports
-const loginRoute = require("./login"); // Ensure the correct path
-const bookingsRoute = require("./bookings");
-const servicesRoute = require("./services");
+const router = express.Router()
 
-router.use("/login", loginRoute); // Make sure login route is included
-router.use("/bookings", bookingsRoute);
-router.use("/services", servicesRoute);
+router.use('/login', loginRoute) // Make sure login route is included
+router.use('/bookings', bookingsRoute)
+router.use('/services', servicesRoute)
 
-module.exports = router;
+export default router

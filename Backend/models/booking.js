@@ -1,4 +1,4 @@
-const { db } = require("../config/db");
+import { db } from '../config/db.js'
 
 const Booking = {
   // Method to create a booking and associate multiple services
@@ -8,40 +8,40 @@ const Booking = {
     booking_time,
     customer_name,
     customer_phone,
-    customer_email
+    customer_email,
   ) => {
     try {
       // First, create the booking
       const bookingSql = `
-        INSERT INTO bookings 
-        (booking_date, booking_time, customer_name, customer_phone, customer_email) 
+        INSERT INTO bookings
+        (booking_date, booking_time, customer_name, customer_phone, customer_email)
         VALUES (?, ?, ?, ?, ?)
-      `;
+      `
       const bookingParams = [
         booking_date,
         booking_time,
         customer_name,
         customer_phone,
         customer_email,
-      ];
+      ]
 
       const bookingResult = await new Promise((resolve, reject) => {
         db.run(bookingSql, bookingParams, function (err) {
           if (err) {
-            reject(err);
+            reject(err)
           } else {
-            resolve(this.lastID); // Return the newly created booking ID
+            resolve(this.lastID) // Return the newly created booking ID
           }
-        });
-      });
+        })
+      })
 
-      const bookingId = bookingResult;
+      const bookingId = bookingResult
 
       // Insert into booking_services for each service ID
       const serviceSql = `
-        INSERT INTO booking_services (booking_id, service_id) 
+        INSERT INTO booking_services (booking_id, service_id)
         VALUES (?, ?)
-      `;
+      `
 
       // Using async/await with Promise.all for all services
       const servicePromises = service_ids.map(
@@ -49,26 +49,26 @@ const Booking = {
           new Promise((resolve, reject) => {
             db.run(serviceSql, [bookingId, service_id], (err) => {
               if (err) {
-                reject(err);
+                reject(err)
               } else {
-                resolve();
+                resolve()
               }
-            });
-          })
-      );
+            })
+          }),
+      )
 
-      await Promise.all(servicePromises);
+      await Promise.all(servicePromises)
 
-      return bookingId; // Return the booking ID after all services are associated
+      return bookingId // Return the booking ID after all services are associated
     } catch (err) {
-      throw new Error("Failed to create booking: " + err.message);
+      throw new Error('Failed to create booking: ' + err.message)
     }
   },
 
   // Method to get all bookings with their associated services
   getAllBookings: async () => {
     const sql = `
-      SELECT 
+      SELECT
         bookings.id AS booking_id,
         bookings.booking_date,
         bookings.booking_time,
@@ -80,24 +80,24 @@ const Booking = {
       LEFT JOIN booking_services ON bookings.id = booking_services.booking_id
       LEFT JOIN services ON booking_services.service_id = services.id
       GROUP BY bookings.id
-    `;
+    `
 
     try {
       const rows = await new Promise((resolve, reject) => {
         db.all(sql, [], (err, rows) => {
           if (err) {
-            reject(err);
+            reject(err)
           } else {
-            resolve(rows);
+            resolve(rows)
           }
-        });
-      });
+        })
+      })
 
-      return rows; // Return all bookings with associated services
+      return rows // Return all bookings with associated services
     } catch (err) {
-      throw new Error("Failed to fetch bookings: " + err.message);
+      throw new Error('Failed to fetch bookings: ' + err.message)
     }
   },
-};
+}
 
-module.exports = Booking;
+export default Booking
