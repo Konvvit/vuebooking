@@ -6,24 +6,62 @@
       <input v-model="password" type="password" placeholder="Password" required />
       <button type="submit">Login</button>
     </form>
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 export default defineComponent({
   name: 'LoginPage',
   setup() {
     const email = ref('')
     const password = ref('')
+    const errorMessage = ref('')
+    const router = useRouter()
 
-    const handleLogin = () => {
-      // Implement login logic here
-      alert(`Logging in with Email: ${email.value}`)
+    const handleLogin = async () => {
+      try {
+        // Clear any previous error messages
+        errorMessage.value = ''
+
+        const response = await axios.post('http://localhost:5002/api/login', {
+          email: email.value,
+          password: password.value,
+        })
+
+        // Handle success
+        if (response.status === 200) {
+          const token = response.data.token
+          console.log('Token received:', token)
+
+          // Store the token in localStorage
+          localStorage.setItem('authToken', token)
+          console.log('Token saved to localStorage.')
+
+          // Navigate to the admin page
+          await router.push('/admin')
+        }
+      } catch (error) {
+        // Handle errors
+        if (axios.isAxiosError(error)) {
+          if (error.response?.data?.error) {
+            errorMessage.value = error.response.data.error
+          } else {
+            errorMessage.value = 'Invalid email or password.'
+          }
+        } else {
+          errorMessage.value = 'An unexpected error occurred. Please try again.'
+        }
+
+        console.error('Login error:', error)
+      }
     }
 
-    return { email, password, handleLogin }
+    return { email, password, errorMessage, handleLogin }
   },
 })
 </script>
@@ -60,5 +98,10 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
 }
 </style>
