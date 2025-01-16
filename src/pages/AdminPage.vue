@@ -42,20 +42,8 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-
-interface Service {
-  name: string
-  price: string
-}
-
-interface Booking {
-  customer_name: string
-  customer_email: string
-  customer_phone: string
-  booking_date: string
-  booking_time: string
-  services: Service[]
-}
+import { fetchBookingsAPI } from '@/utils/api'
+import type { Booking } from '@/types/types'
 
 export default defineComponent({
   name: 'AdminPage',
@@ -66,40 +54,25 @@ export default defineComponent({
     const router = useRouter()
 
     const fetchBookings = async (): Promise<void> => {
-      console.log('Fetching bookings...')
       try {
         const token = localStorage.getItem('authToken')
-        console.log('Token retrieved from localStorage:', token)
         if (!token) throw new Error('You are not authorized to view this page.')
 
-        const response = await fetch('http://localhost:5002/api/bookings', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch bookings. Status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        console.log('Raw response:', data)
-
+        const data = await fetchBookingsAPI(token)
         bookings.value = data.bookings || []
-        console.log('Parsed bookings:', bookings.value)
-      } catch (err) {
-        console.error('Error fetching bookings:', err)
-        error.value = err.message || 'Failed to fetch bookings.'
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          error.value = err.message
+        } else {
+          error.value = 'An unknown error occurred.'
+        }
       } finally {
         loading.value = false
-        console.log('Fetching complete. Loading:', loading.value)
       }
     }
 
     const handleLogout = () => {
-      // Clear the local storage
       localStorage.removeItem('authToken')
-      console.log('User logged out, token removed.')
-
-      // Redirect to the login page
       router.push('/login')
     }
 
@@ -117,69 +90,4 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
-.admin-page {
-  padding: 20px;
-}
-
-.logout-button {
-  margin-bottom: 20px;
-  padding: 10px 20px;
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.logout-button:hover {
-  background-color: #ff1a1a;
-}
-
-.loading {
-  font-size: 1.2rem;
-  color: #007bff;
-}
-
-.error {
-  font-size: 1.2rem;
-  color: red;
-}
-
-.bookings-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-.bookings-table th,
-.bookings-table td {
-  border: 1px solid #000000;
-  padding: 8px;
-  text-align: left;
-}
-
-.bookings-table th {
-  background-color: #ffffff;
-  font-weight: bold;
-}
-
-.bookings-table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.bookings-table tr:hover {
-  background-color: #f1f1f1;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-li {
-  margin-bottom: 5px;
-}
-</style>
+<style src="@/styles/admin-page.css" scoped></style>

@@ -27,13 +27,11 @@ export default defineComponent({
   },
   data() {
     return {
-      // Create a local copy of the contact object
       localContact: { ...this.contact },
     }
   },
   methods: {
     updateContact() {
-      // Emit the updated contact object back to the parent component
       this.$emit('update', this.localContact)
     },
   },

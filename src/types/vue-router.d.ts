@@ -1,12 +1,12 @@
-// src/types/vue-router.d.ts
 import 'vue-router'
 
 declare module 'vue-router' {
   interface RouteLocationNormalized {
     state?: {
       services: Array<{
+        id: number
         name: string
-        description: string
+        description?: string
         price: number
       }>
       contact: {

@@ -15,15 +15,7 @@
         <p>No services available. Please try again later.</p>
       </div>
       <!-- Cart Summary -->
-      <div class="cart-summary" v-if="selectedServices.length > 0">
-        <h2>Cart</h2>
-        <ul>
-          <li v-for="service in selectedServices" :key="service.id">
-            {{ service.name }} - ${{ service.price }}
-          </li>
-        </ul>
-        <p>Total: ${{ cartTotal }}</p>
-      </div>
+      <CartSummary :services="selectedServices" />
     </div>
     <!-- Contact Form -->
     <ContactForm :contact="contact" @update="updateContact" />
@@ -32,27 +24,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import ServiceCard from '../components/ServiceCard.vue'
 import ContactForm from '../components/ContactForm.vue'
-
-interface Service {
-  id: number
-  name: string
-  description: string
-  price: number
-}
-
-interface Contact {
-  name: string
-  email: string
-  phone: string
-}
+import CartSummary from '../components/CartSummary.vue'
+import { fetchServicesAPI } from '@/utils/api'
+import type { Service, Contact } from '@/types/types'
 
 export default defineComponent({
   name: 'ServicesPage',
-  components: { ServiceCard, ContactForm },
+  components: { ServiceCard, ContactForm, CartSummary },
   setup() {
     const router = useRouter()
 
@@ -63,19 +45,12 @@ export default defineComponent({
     // Fetch services from the backend
     const fetchServices = async (): Promise<void> => {
       try {
-        const response = await fetch('http://localhost:5002/api/services')
-        if (!response.ok) throw new Error('Failed to fetch services')
-        const data = await response.json()
+        const data = await fetchServicesAPI()
         services.value = data
       } catch (error) {
         console.error('Error fetching services:', error)
       }
     }
-
-    // Compute the total price of selected services
-    const cartTotal = computed(() =>
-      selectedServices.value.reduce((total, service) => total + service.price, 0),
-    )
 
     // Add service to the cart
     const addService = (service: Service) => {
@@ -121,66 +96,9 @@ export default defineComponent({
       addService,
       updateContact,
       goToDateTimePage,
-      cartTotal,
     }
   },
 })
 </script>
 
-<style scoped>
-.services-page {
-  padding: 20px;
-}
-
-.content-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.services-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  flex: 2;
-}
-
-.cart-summary {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
-
-.cart-summary h2 {
-  margin: 0 0 10px;
-}
-
-.cart-summary ul {
-  list-style: none;
-  padding: 0;
-}
-
-.cart-summary li {
-  margin-bottom: 5px;
-}
-
-.cart-summary p {
-  font-weight: bold;
-}
-
-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-</style>
+<style src="@/styles/services-page.css" scoped></style>

@@ -13,7 +13,20 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { loginAPI } from '@/utils/api'
+import type { APIError } from '@/types/types'
+
+const isAxiosError = (error: unknown): error is APIError => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'isAxiosError' in error &&
+    (error as APIError).isAxiosError === true &&
+    (error as APIError).response?.data !== undefined &&
+    typeof (error as APIError).response?.data === 'object' &&
+    'error' in ((error as APIError).response?.data ?? {})
+  )
+}
 
 export default defineComponent({
   name: 'LoginPage',
@@ -28,32 +41,25 @@ export default defineComponent({
         // Clear any previous error messages
         errorMessage.value = ''
 
-        const response = await axios.post('http://localhost:5002/api/login', {
-          email: email.value,
-          password: password.value,
-        })
+        // Call the login API
+        const response = await loginAPI(email.value, password.value)
 
         // Handle success
-        if (response.status === 200) {
-          const token = response.data.token
-          console.log('Token received:', token)
+        const token = response.token
+        console.log('Token received:', token)
 
-          // Store the token in localStorage
-          localStorage.setItem('authToken', token)
-          console.log('Token saved to localStorage.')
+        // Store the token in localStorage
+        localStorage.setItem('authToken', token)
+        console.log('Token saved to localStorage.')
 
-          // Navigate to the admin page
-          await router.push('/admin')
-        }
-      } catch (error) {
-        // Handle errors
-        if (axios.isAxiosError(error)) {
-          if (error.response?.data?.error) {
-            errorMessage.value = error.response.data.error
-          } else {
-            errorMessage.value = 'Invalid email or password.'
-          }
+        // Navigate to the admin page
+        await router.push('/admin')
+      } catch (error: unknown) {
+        if (isAxiosError(error)) {
+          // Safely handle Axios errors
+          errorMessage.value = error.response?.data?.error || 'Invalid email or password.'
         } else {
+          // Handle unexpected errors
           errorMessage.value = 'An unexpected error occurred. Please try again.'
         }
 
@@ -66,42 +72,4 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
-.login-page {
-  text-align: center;
-  padding: 50px;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-input {
-  margin: 10px;
-  padding: 10px;
-  font-size: 1rem;
-  width: 250px;
-}
-
-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
-}
-</style>
+<style src="@/styles/login-page.css" scoped></style>
