@@ -29,3 +29,12 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}

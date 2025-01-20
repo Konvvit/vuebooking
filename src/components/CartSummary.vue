@@ -1,32 +1,37 @@
 <template>
-  <div class="cart-summary" v-if="services.length > 0">
+  <div class="cart-summary" v-if="cartServices.length > 0">
     <h2>Cart</h2>
-    <ul>
-      <li v-for="service in services" :key="service.id">
+    <transition-group name="list" tag="ul">
+      <li v-for="service in cartServices" :key="service.id">
         {{ service.name }} - ${{ service.price }}
+        <button @click="removeFromCart(service.id)">Remove</button>
       </li>
-    </ul>
+    </transition-group>
     <p>Total: ${{ total }}</p>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, computed } from 'vue'
-import type { Service } from '@/types/types'
+import { useCartStore } from '@/stores/cartStore'
 
 export default defineComponent({
   name: 'CartSummary',
-  props: {
-    services: {
-      type: Array as () => Service[],
-      required: true,
-    },
-  },
-  setup(props) {
-    // Compute total price
-    const total = computed(() => props.services.reduce((sum, service) => sum + service.price, 0))
+  setup() {
+    const cartStore = useCartStore()
 
-    return { total }
+    // Access services from the store
+    const cartServices = computed(() => cartStore.cartItems)
+
+    // Compute total price
+    const total = computed(() => cartStore.totalPrice)
+
+    // Action to remove a service from the cart
+    const removeFromCart = (serviceId: number) => {
+      cartStore.removeFromCart(serviceId)
+    }
+
+    return { cartServices, total, removeFromCart }
   },
 })
 </script>
@@ -50,9 +55,38 @@ export default defineComponent({
 
 .cart-summary li {
   margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .cart-summary p {
   font-weight: bold;
+}
+
+/* Button styles for the remove button */
+button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #ff1a1a;
+}
+
+/* Transition animations */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
 }
 </style>
