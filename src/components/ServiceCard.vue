@@ -27,17 +27,14 @@ export default defineComponent({
     const cartStore = useCartStore()
     const isVisible = ref(false)
 
-    // Make the service card visible after the component is mounted
     onMounted(() => {
       isVisible.value = true
     })
 
-    // Add the service to the cart and store it in localStorage
     const addToCart = () => {
       cartStore.addToCart(props.service)
       console.log('Service added to cart:', cartStore.cartItems)
 
-      // Persist the cart in localStorage
       localStorage.setItem('cartItems', JSON.stringify(cartStore.cartItems))
     }
 
